@@ -1,0 +1,426 @@
+// Dystopia 2 entity definitions for TrenchBroom.
+//
+// All keys are stored as strings in the .map; the FGD types only drive the
+// editor UI (dropdowns, colour pickers, link lines).
+//
+// Teams:   1 = Punks, 2 = Corps.
+// Targets: "target" is a comma-separated list of targetnames, each optionally
+//          suffixed with ":action", e.g.  door_bay:open,core_ff:disable,spawn_mid
+//          Targets without a suffix receive the firing entity's default action.
+// Actions: open close toggle lock unlock enable disable capture pass0..pass3
+//          (each entity class lists the ones it reacts to).
+
+// ---------------------------------------------------------------------------
+// Base classes
+// ---------------------------------------------------------------------------
+
+@BaseClass = Targetname
+[
+	targetname(target_source) : "Name" : : "Name other entities use to reference this one (target lists, cyberspawn, doorway, objective, group)."
+]
+
+@BaseClass = Target
+[
+	target(target_destination) : "Targets" : :
+		"Comma-separated targetnames to fire, each optionally suffixed with :action, " +
+		"e.g. door_bay:open,core_ff:disable. TrenchBroom only draws a link line when the value is a single plain name."
+]
+
+@BaseClass = Angle
+[
+	angle(integer) : "Yaw" : 0 : "Facing in degrees: 0 = +X (east), 90 = +Y (north), 180 = -X, 270 = -Y."
+]
+
+@BaseClass = Label
+[
+	label(string) : "Label" : : "Name shown on the HUD, in notices and tooltips. Defaults to the targetname."
+]
+
+@BaseClass size(-16 -16 0, 16 16 72) base(Angle) = PlayerStart
+[
+	group(target_destination) : "Spawn group" : :
+		"targetname of the d2_spawngroup this spawn belongs to. The team spawns here while it owns that group " +
+		"and the group is enabled. Leave empty for a fallback spawn (used when the team owns no enabled group)."
+]
+
+// ---------------------------------------------------------------------------
+// World and rules
+// ---------------------------------------------------------------------------
+
+@SolidClass = worldspawn : "World entity: static level geometry"
+[
+	message(string) : "Map title" : : "Map name shown to players."
+	_author(string) : "Author" : : "Map author(s)."
+]
+
+@SolidClass color(128 128 128) = func_group : "Brush group: merged into the static world geometry" []
+
+@SolidClass color(128 128 128) = func_detail : "Detail brushes: merged into the static world geometry" []
+
+@SolidClass color(160 160 255) = func_illusionary : "Visible but not solid (decals, pad markings, holograms)" []
+
+@PointClass size(-12 -12 -12, 12 12 12) color(255 210 31) = d2_gamerules :
+	"Game rules (one per map): attacking team and round timing"
+[
+	attackers(choices) : "Attackers" : 1 : "Team that attacks (completes objectives); the other team defends." =
+	[
+		1 : "Punks"
+		2 : "Corps"
+	]
+	roundtime(integer) : "Round time (s)" : 900 : "Initial round clock in seconds."
+	stagebonus(integer) : "Stage bonus (s)" : 180 : "Seconds added to the clock each time the attackers clear a stage."
+]
+
+// ---------------------------------------------------------------------------
+// Spawning
+// ---------------------------------------------------------------------------
+
+@PointClass base(PlayerStart) color(255 43 214) = info_player_punk : "Punk spawn point" []
+
+@PointClass base(PlayerStart) color(39 198 255) = info_player_corp : "Corp spawn point" []
+
+@PointClass base(Targetname) size(-12 -12 -12, 12 12 12) color(255 210 31) = d2_spawngroup :
+	"Spawn group: a capturable set of spawn points (info_player_* whose group is this targetname). " +
+	"Actions: enable, disable, capture (owner becomes the activating team and the group is enabled)."
+[
+	team(choices) : "Owner" : 0 : "Team that owns the group; only the owning team spawns at its points." =
+	[
+		0 : "None"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	enabled(choices) : "Enabled" : 1 : "Disabled groups are not used until enabled or captured." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
+@PointClass base(Targetname, Angle) size(-12 -12 -12, 12 12 12) color(24 232 255) = d2_cyber_spawn :
+	"Cyberspace avatar spawn, referenced by the cyberspawn keys of d2_jackin. " +
+	"Several d2_cyber_spawn entities may share one targetname to form a set."
+[
+	up(string) : "Up vector" : "0 0 1" :
+		"Gravity up of the avatar at spawn: 0 0 1 = floor, 0 0 -1 = ceiling, 1 0 0 = standing on a wall that faces +X."
+]
+
+// ---------------------------------------------------------------------------
+// Logic and objectives
+// ---------------------------------------------------------------------------
+
+@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) color(200 200 200) = d2_relay :
+	"Logic relay: when fired, fires its own targets. Targets without an explicit :action " +
+	"receive the action the relay itself was fired with."
+[
+]
+
+@PointClass base(Targetname, Target, Label) size(-12 -12 -12, 12 12 12) color(255 210 31) = d2_objective :
+	"Objective. Completed by a d2_node, d2_screen or func_breakable whose objective key names it " +
+	"(attacking team only, once its stage is reached). On completion it fires its targets " +
+	"(default action: trigger, so use :action suffixes). The stage advances when every " +
+	"non-optional objective of the current stage is done."
+[
+	stage(integer) : "Stage" : 1 : "Stage (1-based) this objective belongs to."
+	desc(string) : "Description" : : "Longer briefing text for the objective list."
+	final(choices) : "Final" : 0 : "Completing a final objective ends the round with an attacker win." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	optional(choices) : "Optional" : 0 : "Optional objectives do not hold back the stage advance." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
+// ---------------------------------------------------------------------------
+// Meatspace interactables
+// ---------------------------------------------------------------------------
+
+@PointClass base(Targetname, Angle, Label) size(-16 -16 0, 16 16 64) color(24 232 255) = d2_jackin :
+	"Jack-In Point (JIP): terminal where a decker jacks into cyberspace. The body stays here while the " +
+	"avatar appears at a d2_cyber_spawn. Angle = direction the terminal faces (towards the user). " +
+	"Actions: enable, disable, toggle."
+[
+	team(choices) : "Usable by" : 0 : "Team allowed to jack in here." =
+	[
+		0 : "Both"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	cyberspawn(target_destination) : "Cyber spawn" : : "targetname of the d2_cyber_spawn set where the avatar appears."
+	cyberspawn_punk(target_destination) : "Cyber spawn (Punks)" : : "Per-team override of cyberspawn for Punks."
+	cyberspawn_corp(target_destination) : "Cyber spawn (Corps)" : : "Per-team override of cyberspawn for Corps."
+	enabled(choices) : "Enabled" : 1 : "Initial state." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
+@PointClass base(Targetname, Target, Angle, Label) size(-8 -8 -8, 8 8 8) color(255 210 31) = d2_screen :
+	"Meatspace button screen: hold Use for holdtime seconds to fire its targets and complete its objective. " +
+	"Actions: enable, disable."
+[
+	action(choices) : "Action" : :
+		"Action sent to targets without a :action suffix. If unset they receive the generic 'trigger' action, " +
+		"which only d2_relay passes on." =
+	[
+		"open" : "open"
+		"close" : "close"
+		"toggle" : "toggle"
+		"lock" : "lock"
+		"unlock" : "unlock"
+		"enable" : "enable"
+		"disable" : "disable"
+		"capture" : "capture (target switches to the user's team)"
+		"pass0" : "pass0 (ICE: nobody)"
+		"pass1" : "pass1 (ICE: Punks)"
+		"pass2" : "pass2 (ICE: Corps)"
+		"pass3" : "pass3 (ICE: both)"
+		"trigger" : "trigger (generic, relays pass it on)"
+	]
+	team(choices) : "Usable by" : 0 : "Team allowed to use the screen." =
+	[
+		0 : "Anyone"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	holdtime(float) : "Hold time (s)" : "1" : "Seconds Use must be held."
+	stage(integer) : "Stage" : 0 : "Usable from this stage on (0 = always)."
+	objective(target_destination) : "Objective" : : "targetname of the d2_objective completed when the screen is used."
+]
+
+@PointClass base(Targetname, Angle, Label) size(-16 -16 0, 16 16 48) color(255 42 61) = d2_turret :
+	"Sentry turret (gun 24 units above the origin). Shoots players of the other team in range. " +
+	"Actions: capture (switch to the activating team), enable, disable, toggle."
+[
+	team(choices) : "Team" : 0 : "Team the turret fights for (0 = inactive until captured)." =
+	[
+		0 : "None"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	health(integer) : "Health" : 0 : "Hit points; 0 = invulnerable."
+	respawn(float) : "Respawn (s)" : "30" : "Seconds until a destroyed turret comes back."
+	damage(integer) : "Damage" : 8 : "Damage per shot."
+	range(integer) : "Range" : 1500 : "Engagement range in units."
+]
+
+@PointClass base(Targetname, Angle, Label) size(-8 -8 -8, 8 8 8) color(255 42 61) = d2_camera :
+	"Security camera: reveals enemies inside its view cone to its team. Actions: capture."
+[
+	team(choices) : "Team" : 0 : "Team the camera reports to (0 = inactive until captured)." =
+	[
+		0 : "None"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	fov(integer) : "Field of view" : 70 : "Full cone angle in degrees."
+	range(integer) : "Range" : 1800 : "View distance in units."
+]
+
+@PointClass base(Angle) size(-16 -16 0, 16 16 48) color(61 255 122) = d2_ammo : "Ammo dispenser" []
+
+@PointClass size(-8 -8 -8, 8 8 8) color(255 244 224) = light : "Point light"
+[
+	_color(color255) : "Color" : "255 240 220" : "Light colour (R G B, 0-255)."
+	light(float) : "Intensity" : "1" : "Brightness multiplier."
+	range(integer) : "Range" : 600 : "Falloff distance in units."
+]
+
+// ---------------------------------------------------------------------------
+// Meatspace brush entities
+// ---------------------------------------------------------------------------
+
+@SolidClass base(Targetname, Label) color(232 177 0) = func_door :
+	"Sliding door. Auto-opens for players of its team (team 0: for everyone unless locked). " +
+	"Actions: open, close, toggle, lock, unlock. An open action on a locked door (or one with wait -1) " +
+	"unlocks it and keeps it open for good."
+[
+	angle(integer) : "Move direction" : 0 : "-1 = up, -2 = down, otherwise the yaw in degrees the door slides towards."
+	speed(integer) : "Speed" : 150 : "Units per second."
+	lip(integer) : "Lip" : 8 : "Units of the door still covering the opening when fully open."
+	wait(float) : "Wait (s)" : "3" : "Seconds before closing again; -1 = stays open once opened by an action."
+	team(choices) : "Team" : 0 : "Team the door auto-opens for." =
+	[
+		0 : "Everyone (unless locked)"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	locked(choices) : "Locked" : 0 : "Locked doors do not auto-open for team 0 players." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
+@SolidClass base(Targetname, Label) color(39 230 255) = func_forcefield :
+	"Team force field: blocks players and bullets of every team except its own while on. " +
+	"Actions: enable, disable, toggle, capture (field switches to the activating team)."
+[
+	team(choices) : "Passable by" : 0 : "Team allowed through." =
+	[
+		0 : "Nobody"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	start(choices) : "Start on" : 1 : "Initial state." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+]
+
+@SolidClass base(Targetname, Target, Label) color(255 42 61) = func_breakable :
+	"Destructible brush (e.g. the data core). Its owner team cannot damage it; explosives do 1.5x damage. " +
+	"When destroyed it fires its targets (default action: trigger) and completes its objective."
+[
+	health(integer) : "Health" : 500 : "Hit points."
+	team(choices) : "Owner" : 0 : "Team that owns it and cannot damage it." =
+	[
+		0 : "None"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	objective(target_destination) : "Objective" : : "targetname of the d2_objective completed when destroyed."
+]
+
+@SolidClass base(Target, Label) color(255 140 0) = trigger_crack :
+	"Crack zone (texture d2/trigger): a player with a deck standing inside and holding Use cracks it " +
+	"over time; when done it fires its targets."
+[
+	action(choices) : "Action" : "open" : "Action sent to targets without a :action suffix." =
+	[
+		"open" : "open"
+		"close" : "close"
+		"toggle" : "toggle"
+		"lock" : "lock"
+		"unlock" : "unlock"
+		"enable" : "enable"
+		"disable" : "disable"
+		"capture" : "capture (target switches to the cracker's team)"
+		"pass0" : "pass0 (ICE: nobody)"
+		"pass1" : "pass1 (ICE: Punks)"
+		"pass2" : "pass2 (ICE: Corps)"
+		"pass3" : "pass3 (ICE: both)"
+		"trigger" : "trigger (generic, relays pass it on)"
+	]
+	time(float) : "Crack time (s)" : "20" : "Seconds of cracking needed."
+	team(choices) : "Crackable by" : 0 : "Team allowed to crack it." =
+	[
+		0 : "Anyone"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	stage(integer) : "Stage" : 0 : "Only crackable during this stage (0 = any stage)."
+]
+
+@SolidClass color(255 42 61) = trigger_hurt : "Damage volume (texture d2/trigger)"
+[
+	damage(integer) : "Damage/s" : 50 : "Damage per second while inside."
+]
+
+// ---------------------------------------------------------------------------
+// Cyberspace
+// ---------------------------------------------------------------------------
+
+@PointClass base(Targetname, Target, Angle, Label) size(-12 -12 -12, 12 12 12) color(178 43 255) = d2_node :
+	"Cyberspace node screen. A decker of the non-owning team hacks it to fire its targets (open a door, capture a " +
+	"turret, drop a force field...) and complete its objective. Usually sits in a node house whose entrance is a " +
+	"cyber_ice doorway. Actions: enable, disable."
+[
+	action(choices) : "Action" : : "Action sent to targets without a :action suffix when the node is hacked." =
+	[
+		"open" : "open"
+		"close" : "close"
+		"toggle" : "toggle"
+		"lock" : "lock"
+		"unlock" : "unlock"
+		"enable" : "enable"
+		"disable" : "disable"
+		"capture" : "capture (target switches to the hacker's team)"
+		"pass0" : "pass0 (ICE: nobody)"
+		"pass1" : "pass1 (ICE: Punks)"
+		"pass2" : "pass2 (ICE: Corps)"
+		"pass3" : "pass3 (ICE: both)"
+		"trigger" : "trigger (generic, relays pass it on)"
+	]
+	team(choices) : "Owner" : 2 : "Team that owns and defends the node." =
+	[
+		0 : "None"
+		1 : "Punks"
+		2 : "Corps"
+	]
+	protection(choices) : "Protection" : 0 : "Initial protection the hacker has to break first." =
+	[
+		0 : "None"
+		1 : "Password"
+		2 : "Encryption"
+	]
+	stage(integer) : "Stage" : 0 : "Hackable from this stage on (0 = always)."
+	objective(target_destination) : "Objective" : : "targetname of the d2_objective completed when the node is hacked."
+	oneway(choices) : "One-way" : 0 : "Yes = once taken, the owner cannot hack it back." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	doorway(target_destination) : "Doorway" : : "targetname of the cyber_ice (doorway 1) guarding this node."
+	up(string) : "Up vector" : "0 0 1" :
+		"Up direction of the node screen / the surface its house is mounted on: 0 0 1 floor, 0 0 -1 ceiling, " +
+		"0 -1 0 north wall, 0 1 0 south wall."
+]
+
+@SolidClass base(Targetname) color(255 42 61) = cyber_ice :
+	"ICE barrier (texture d2/cyber_ice). Blocks avatars that may not pass; while not fully open (pass 3) it also " +
+	"blocks cyber weapon fire. Actions: pass0, pass1, pass2, pass3, open (= pass3), close (= pass0)."
+[
+	pass(choices) : "Passable by" : 3 : "Who may pass (in-game colour in brackets)." =
+	[
+		0 : "Nobody (yellow)"
+		1 : "Punks (red)"
+		2 : "Corps (blue)"
+		3 : "Both (purple)"
+	]
+	doorway(choices) : "Node doorway" : 0 :
+		"Programmable node doorway (decks can install programs on it). Reference it from the doorway key of its d2_node." =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
+@SolidClass color(24 232 255) = cyber_zerog :
+	"Zero-gravity link volume (texture d2/trigger): avatars inside float and are carried along flow"
+[
+	flow(string) : "Flow" : "0 0 0" : "Velocity (X Y Z, units/s) the link pushes avatars along."
+]
+
+@SolidClass color(24 232 255) = cyber_jumppad : "Cyberspace jump pad volume (texture d2/trigger)"
+[
+	push(string) : "Push" : "0 0 600" : "Launch velocity (X Y Z, units/s)."
+]
+
+@SolidClass color(24 232 255) = cyber_speedpad : "Cyberspace speed pad volume (texture d2/trigger)"
+[
+	push(string) : "Push" : "800 0 0" : "Boost velocity (X Y Z, units/s)."
+]
+
+@SolidClass color(178 43 255) = cyber_drain : "Energy drain volume (texture d2/trigger)"
+[
+	rate(float) : "Rate" : "4" : "Energy drained per second; negative values heal."
+]
+
+@SolidClass color(255 42 61) = trigger_eject :
+	"Cyberspace pit (texture d2/trigger): an avatar touching it is ejected from cyberspace"
+[
+]
+
+@PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(43 255 154) = d2_cyberpath :
+	"Bot waypoint in cyberspace. Waypoints form a graph through their target lists and bot deckers steer " +
+	"from waypoint to waypoint, so keep every link traversable. Links are one-way: list each other on both " +
+	"waypoints for two-way travel."
+[
+	target(target_destination) : "Links" : : "Comma-separated targetnames of the d2_cyberpath waypoints reachable from here (no :action suffixes)."
+]
