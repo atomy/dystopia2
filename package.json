@@ -9,7 +9,7 @@
     "dev": "npm run dev -w @d2/server & npm run dev -w @d2/client",
     "build": "npm run build -w @d2/client && npm run build -w @d2/server",
     "start": "npm run start -w @d2/server",
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -p packages/shared --noEmit && tsc -p packages/server --noEmit && tsc -p packages/client --noEmit && tsc -p tools --noEmit",
     "test": "vitest run"
   },
   "devDependencies": {

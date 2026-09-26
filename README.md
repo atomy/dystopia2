@@ -61,6 +61,8 @@ npm run dev
 
 This starts the game server on `:8080` (auto-reloads) and the Vite client on `:5173`. Open **http://localhost:5173**, pick a callsign and **Host game**, then share the room code or the invite link (`?room=CODE`). Click into the game to capture the mouse.
 
+If the dev machine is a VM or another box, `localhost` on your desktop is not that machine: use its LAN address instead, e.g. `http://192.168.x.y:5173` (Vite listens on all interfaces). Friends on the LAN use the same URL. If `npm run dev` complains that a port is in use, another dev server is already running; stop it first or use that one.
+
 ## Production / VPS
 
 ```bash
@@ -101,7 +103,7 @@ packages/client   three.js client: baked-light level renderer, prediction/interp
                   procedural WebAudio SFX
 tools/            map generator (tools/maps), TrenchBroom game config (tools/trenchbroom), test driver
 maps/             .map files loaded by server and client
-docs/             DESIGN.md (decisions) and research/dystopia-original.md (reference)
+docs/             DESIGN.md (decisions), HANDOVER.md (status + M2/M3 plan), research/dystopia-original.md
 ```
 
 ## Making maps
