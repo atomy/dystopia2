@@ -67,7 +67,7 @@ function street(k: MapKit): void {
     const y = -160 + Math.floor(i / 4) * 320;
     k.point('info_player_punk', v3(x, y, 1), { group: 'punk_base', angle: 0 });
   }
-  k.light(v3(-3392, 0, 160), '255 80 200', 1.2, 500);
+  k.light(v3(-3392, 0, 170), '255 150 220', 0.7, 520);
 
   // Cover on the street.
   k.crate(-2944, -448, 0, 128, 128, 96);

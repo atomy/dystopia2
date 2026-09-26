@@ -8,6 +8,7 @@ export * from './sim/pmove.js';
 export * from './sim/cybermove.js';
 export * from './sim/weapons.js';
 export * from './sim/caps.js';
+export * from './sim/zones.js';
 export * from './game/defs.js';
 export * from './net/bytes.js';
 export * from './net/protocol.js';

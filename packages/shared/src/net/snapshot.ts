@@ -450,7 +450,7 @@ function readEvent(r: ByteReader): NetEvent {
   }
 }
 
-export function encodeSnapshot(s: Snapshot): Uint8Array {
+export function encodeSnapshot(s: Snapshot): Uint8Array<ArrayBuffer> {
   const w = new ByteWriter(4096);
   w.u8(BinMsg.Snapshot);
   w.u32(s.tick).u32(s.ack);
@@ -624,7 +624,7 @@ export function decodeSnapshot(data: Uint8Array): Snapshot {
 // User commands (client -> server). Each packet carries the newest commands
 // plus a couple of older ones for redundancy.
 
-export function encodeUserCmds(cmds: import('../sim/pmove.js').UserCmd[]): Uint8Array {
+export function encodeUserCmds(cmds: import('../sim/pmove.js').UserCmd[]): Uint8Array<ArrayBuffer> {
   const w = new ByteWriter(64 + cmds.length * 32);
   w.u8(BinMsg.UserCmds).u8(cmds.length);
   for (const c of cmds) {

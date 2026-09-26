@@ -3,7 +3,7 @@
 export class ByteWriter {
   private buf: ArrayBuffer;
   private view: DataView;
-  private arr: Uint8Array;
+  private arr: Uint8Array<ArrayBuffer>;
   offset = 0;
 
   constructor(initial = 1024) {
@@ -84,7 +84,7 @@ export class ByteWriter {
     this.offset += b.length;
     return this;
   }
-  bytes(): Uint8Array {
+  bytes(): Uint8Array<ArrayBuffer> {
     return this.arr.slice(0, this.offset);
   }
 }

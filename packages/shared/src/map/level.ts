@@ -97,3 +97,16 @@ function makeEnt(id: number, classname: string, props: Record<string, string>, b
 export function entitiesOf(level: Level, classname: string): LevelEntity[] {
   return level.entities.filter((e) => e.classname === classname);
 }
+
+/** Movement direction and travel distance of a func_door. */
+export function doorMotion(e: LevelEntity): { dir: Vec3; distance: number } {
+  const a = e.angle;
+  const rad = (a * Math.PI) / 180;
+  const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
+  const dir = a === -1 ? v3(0, 0, 1) : a === -2 ? v3(0, 0, -1) : v3(r6(Math.cos(rad)), r6(Math.sin(rad)), 0);
+  const sx = e.maxs.x - e.mins.x;
+  const sy = e.maxs.y - e.mins.y;
+  const sz = e.maxs.z - e.mins.z;
+  const distance = Math.abs(dir.x) * sx + Math.abs(dir.y) * sy + Math.abs(dir.z) * sz - propNum(e, 'lip', 8);
+  return { dir, distance };
+}

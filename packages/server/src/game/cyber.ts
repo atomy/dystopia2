@@ -6,7 +6,6 @@ import {
   type UserCmd,
   type NetEnt,
   type CyberEnv,
-  type CyberZone,
   type ModelFilter,
   type BrushModel,
   v3,
@@ -53,6 +52,7 @@ import {
   ICE_MINE_DAMAGE,
   GREEN_ICE_STUN,
   makeRng,
+  makeCyberEnv,
 } from '@d2/shared';
 import type { Game } from './game.js';
 import type { ServerPlayer } from './player.js';
@@ -85,24 +85,10 @@ const envCache = new WeakMap<Game, CyberEnv>();
 
 export function cyberEnv(g: Game): CyberEnv {
   let env = envCache.get(g);
-  if (env) return env;
-  const zones = g.zones.filter((z) => z.kind === 'zerog' || z.kind === 'jumppad' || z.kind === 'speedpad');
-  env = {
-    zoneAt(pos: Vec3): CyberZone {
-      let zone: CyberZone | null = null;
-      for (const z of zones) {
-        if (!zoneContains(z, pos)) continue;
-        zone ??= { zeroG: false, flow: null, pad: null, speed: null };
-        if (z.kind === 'zerog') {
-          zone.zeroG = true;
-          if (vlen(z.vec) > 0) zone.flow = z.vec;
-        } else if (z.kind === 'jumppad') zone.pad = z.vec;
-        else zone.speed = z.vec;
-      }
-      return zone ?? { zeroG: false, flow: null, pad: null, speed: null };
-    },
-  };
-  envCache.set(g, env);
+  if (!env) {
+    env = makeCyberEnv(g.zones);
+    envCache.set(g, env);
+  }
   return env;
 }
 

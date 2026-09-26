@@ -346,7 +346,7 @@ export class BotBrain {
       const dist = vdist(tgt.move.origin, p.move.origin);
       // Minigun keeps spinning while a target is around.
       if (cur === WeaponId.Minigun) buttons |= Buttons.ATTACK2;
-      if (aimed) buttons |= Buttons.ATTACK;
+      if (aimed && !this.friendInLine(g, p, eye, vadd(tgt.move.origin, v3(0, 0, 40)))) buttons |= Buttons.ATTACK;
       // Grenades: EMP enemy decker bodies, frag groups.
       if (now >= this.nextGrenade && p.weap.owned.some((w) => WEAPONS[w]!.kind === 'grenade' && (p.weap.clip[w] ?? 0) > 0)) {
         const gren = p.weap.owned.find((w) => WEAPONS[w]!.kind === 'grenade')!;
@@ -410,6 +410,23 @@ export class BotBrain {
     } else this.stuckSince = 0;
     if (now < this.jumpUntil) buttons |= Buttons.JUMP;
     return this.cmd(buttons, fwd, side, weapon);
+  }
+
+  /** Is a team-mate standing in the line of fire (friendly fire is usually on)? */
+  private friendInLine(g: Game, p: ServerPlayer, from: Vec3, to: Vec3): boolean {
+    const d = vsub(to, from);
+    const len = vlen(d);
+    if (len < 1) return false;
+    const dir = vscale(d, 1 / len);
+    for (const q of g.players.values()) {
+      if (q === p || !q.alive || q.team !== p.team) continue;
+      const c = vadd(q.move.origin, v3(0, 0, 36));
+      const t = vdot(vsub(c, from), dir);
+      if (t < 0 || t > len) continue;
+      const closest = vadd(from, vscale(dir, t));
+      if (vdist(closest, c) < 40) return true;
+    }
+    return false;
   }
 
   private pickEnemy(g: Game, p: ServerPlayer, eye: Vec3): ServerPlayer | null {

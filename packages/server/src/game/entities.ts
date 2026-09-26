@@ -20,7 +20,7 @@ import {
   type NetEnt,
   Team,
   boxInBrushes,
-  pointInBrushes,
+  doorMotion,
 } from '@d2/shared';
 
 export const bool = (e: LevelEntity, k: string, def = false): boolean => {
@@ -86,10 +86,9 @@ export class DoorEnt extends Ent {
 
   constructor(src: LevelEntity) {
     super(src);
-    const a = src.angle;
-    this.dir = a === -1 ? v3(0, 0, 1) : a === -2 ? v3(0, 0, -1) : v3(Math.round(Math.cos((a * Math.PI) / 180) * 1e6) / 1e6, Math.round(Math.sin((a * Math.PI) / 180) * 1e6) / 1e6, 0);
-    const size = vsub(src.maxs, src.mins);
-    this.distance = Math.abs(this.dir.x) * size.x + Math.abs(this.dir.y) * size.y + Math.abs(this.dir.z) * size.z - propNum(src, 'lip', 8);
+    const m = doorMotion(src);
+    this.dir = m.dir;
+    this.distance = m.distance;
     this.speed = propNum(src, 'speed', 150);
     this.wait = propNum(src, 'wait', 3);
     this.team = propNum(src, 'team', 0);
@@ -558,37 +557,6 @@ export class SpawnGroupEnt extends Ent {
 
 export class RelayEnt extends Ent {}
 
-export interface Zone {
-  kind: 'zerog' | 'jumppad' | 'speedpad' | 'drain' | 'hurt' | 'eject';
-  brushes: Brush[];
-  vec: Vec3;
-  rate: number;
-  mins: Vec3;
-  maxs: Vec3;
-}
-
-export function zoneContains(z: Zone, p: Vec3): boolean {
-  if (p.x < z.mins.x - 1 || p.y < z.mins.y - 1 || p.z < z.mins.z - 1 || p.x > z.maxs.x + 1 || p.y > z.maxs.y + 1 || p.z > z.maxs.z + 1) return false;
-  return pointInBrushes(p, z.brushes);
-}
-
-export function zoneFrom(e: LevelEntity): Zone | null {
-  const base = { brushes: e.brushes, mins: e.mins, maxs: e.maxs };
-  switch (e.classname) {
-    case 'cyber_zerog':
-      return { kind: 'zerog', vec: parseVec(e.props['flow']), rate: 0, ...base };
-    case 'cyber_jumppad':
-      return { kind: 'jumppad', vec: parseVec(e.props['push'], v3(0, 0, 600)), rate: 0, ...base };
-    case 'cyber_speedpad':
-      return { kind: 'speedpad', vec: parseVec(e.props['push'], v3(800, 0, 0)), rate: 0, ...base };
-    case 'cyber_drain':
-      return { kind: 'drain', vec: v3(), rate: propNum(e, 'rate', 4), ...base };
-    case 'trigger_hurt':
-      return { kind: 'hurt', vec: v3(), rate: propNum(e, 'damage', 50), ...base };
-    case 'trigger_eject':
-      return { kind: 'eject', vec: v3(), rate: 0, ...base };
-  }
-  return null;
-}
+export { type Zone, zoneFrom, zoneContains } from '@d2/shared';
 
 export const vlenSafe = (v: Vec3): number => vlen(v);

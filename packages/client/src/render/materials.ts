@@ -22,23 +22,23 @@ interface MatDef {
 }
 
 const DEFS: Record<string, MatDef> = {
-  floor: { base: '#23252b', line: '#34373f', pattern: 'grid', tile: 128, roughness: 0.85 },
-  concrete: { base: '#2c2d31', line: '#26272b', pattern: 'panel', tile: 256, roughness: 0.95 },
-  wall: { base: '#30323a', line: '#262830', pattern: 'panel', tile: 128, roughness: 0.8 },
-  ceil: { base: '#1b1c21', line: '#15161a', pattern: 'grid', tile: 128, roughness: 0.9 },
-  metal: { base: '#3a3f47', line: '#2a2e35', pattern: 'plates', tile: 64, roughness: 0.45, metalness: 0.6 },
-  trim: { base: '#15161b', line: '#0c0d10', pattern: 'solid', roughness: 0.5, metalness: 0.4 },
-  vent: { base: '#2a2d33', line: '#15171b', pattern: 'vent', tile: 64, roughness: 0.6, metalness: 0.5 },
+  floor: { base: '#3a3d46', line: '#50545f', pattern: 'grid', tile: 128, roughness: 0.85 },
+  concrete: { base: '#44464d', line: '#3a3c42', pattern: 'panel', tile: 256, roughness: 0.95 },
+  wall: { base: '#4a4e5a', line: '#3a3d47', pattern: 'panel', tile: 128, roughness: 0.8 },
+  ceil: { base: '#2a2c33', line: '#202228', pattern: 'grid', tile: 128, roughness: 0.9 },
+  metal: { base: '#5a606c', line: '#3e434c', pattern: 'plates', tile: 64, roughness: 0.45, metalness: 0.6 },
+  trim: { base: '#22242b', line: '#16171c', pattern: 'solid', roughness: 0.5, metalness: 0.4 },
+  vent: { base: '#40444c', line: '#24272c', pattern: 'vent', tile: 64, roughness: 0.6, metalness: 0.5 },
   hazard: { base: '#d6a400', line: '#141414', pattern: 'stripes', tile: 64, roughness: 0.7 },
   door: { base: '#3d4450', line: '#e8b100', pattern: 'stripes', tile: 128, roughness: 0.5, metalness: 0.5 },
   glass: { base: '#7fd8ff', line: '#b8ecff', pattern: 'solid', roughness: 0.05, metalness: 0.1, opacity: 0.18 },
-  punk: { base: '#3a1230', line: '#ff2bd6', pattern: 'panel', tile: 128, emissive: '#ff2bd6', emissiveIntensity: 0.15 },
-  corp: { base: '#0f2436', line: '#27c6ff', pattern: 'panel', tile: 128, emissive: '#27c6ff', emissiveIntensity: 0.15 },
-  neon_cyan: { base: '#27e6ff', line: '#27e6ff', pattern: 'solid', emissive: '#27e6ff', emissiveIntensity: 3, unlit: true },
-  neon_magenta: { base: '#ff2bd6', line: '#ff2bd6', pattern: 'solid', emissive: '#ff2bd6', emissiveIntensity: 3, unlit: true },
-  neon_yellow: { base: '#ffd21f', line: '#ffd21f', pattern: 'solid', emissive: '#ffd21f', emissiveIntensity: 3, unlit: true },
-  neon_red: { base: '#ff2a3d', line: '#ff2a3d', pattern: 'solid', emissive: '#ff2a3d', emissiveIntensity: 3, unlit: true },
-  neon_green: { base: '#3dff7a', line: '#3dff7a', pattern: 'solid', emissive: '#3dff7a', emissiveIntensity: 3, unlit: true },
+  punk: { base: '#4a2440', line: '#c02aa0', pattern: 'panel', tile: 128, emissive: '#ff2bd6', emissiveIntensity: 0.15 },
+  corp: { base: '#1f3448', line: '#2a90c0', pattern: 'panel', tile: 128, emissive: '#27c6ff', emissiveIntensity: 0.15 },
+  neon_cyan: { base: '#27e6ff', line: '#27e6ff', pattern: 'solid', emissive: '#27e6ff', emissiveIntensity: 2.2, unlit: true },
+  neon_magenta: { base: '#ff2bd6', line: '#ff2bd6', pattern: 'solid', emissive: '#ff2bd6', emissiveIntensity: 2.2, unlit: true },
+  neon_yellow: { base: '#ffd21f', line: '#ffd21f', pattern: 'solid', emissive: '#ffd21f', emissiveIntensity: 2.2, unlit: true },
+  neon_red: { base: '#ff2a3d', line: '#ff2a3d', pattern: 'solid', emissive: '#ff2a3d', emissiveIntensity: 2.2, unlit: true },
+  neon_green: { base: '#3dff7a', line: '#3dff7a', pattern: 'solid', emissive: '#3dff7a', emissiveIntensity: 2.2, unlit: true },
   light: { base: '#fff4e0', line: '#fff4e0', pattern: 'solid', emissive: '#fff4e0', emissiveIntensity: 2.2, unlit: true },
   screen: { base: '#04121c', line: '#27e6ff', pattern: 'screen', tile: 64, emissiveFromPattern: true, emissiveIntensity: 1.6 },
   sky: { base: '#07030f', line: '#07030f', pattern: 'solid', unlit: true },
@@ -47,7 +47,15 @@ const DEFS: Record<string, MatDef> = {
   cyber_wall: { base: '#05010a', line: '#b22bff', pattern: 'cybergrid', tile: 256, emissiveFromPattern: true, emissiveIntensity: 1.1 },
   cyber_data: { base: '#020a06', line: '#2bff9a', pattern: 'hex', tile: 96, emissiveFromPattern: true, emissiveIntensity: 1.2 },
   cyber_ice: { base: '#1a0003', line: '#ff2a3d', pattern: 'hex', tile: 64, emissiveFromPattern: true, emissiveIntensity: 1.8, opacity: 0.85 },
+  forcefield: { base: '#062a33', line: '#27e6ff', pattern: 'hex', tile: 48, emissiveFromPattern: true, emissiveIntensity: 1.4, opacity: 0.45 },
 };
+
+/** Textures that are drawn fully bright (no baked lighting needed). */
+export function isUnlitTexture(texture: string): boolean {
+  const name = texture.toLowerCase().replace(/^.*\//, '');
+  const def = DEFS[name];
+  return !!def && (!!def.unlit || !!def.emissiveFromPattern || def.opacity !== undefined);
+}
 
 const FALLBACK: MatDef = { base: '#2b2d33', line: '#3a3d45', pattern: 'grid', tile: 128 };
 
@@ -208,29 +216,25 @@ export function materialFor(texture: string): MaterialInfo {
   tex.anisotropy = 4;
   let material: THREE.Material;
   if (def.unlit) {
+    // Neon and lights: over-bright so the bloom pass picks them up.
     const c = new THREE.Color(def.base);
     if (def.emissiveIntensity) c.multiplyScalar(def.emissiveIntensity);
-    material = new THREE.MeshBasicMaterial({ color: c, fog: def.pattern !== 'solid' || name !== 'sky' });
-  } else {
-    const m = new THREE.MeshStandardMaterial({
-      map: tex,
-      roughness: def.roughness ?? 0.8,
-      metalness: def.metalness ?? 0,
-    });
-    if (def.emissiveFromPattern) {
-      m.emissiveMap = tex;
-      m.emissive = new THREE.Color('#ffffff');
-      m.emissiveIntensity = def.emissiveIntensity ?? 1;
-    } else if (def.emissive) {
-      m.emissive = new THREE.Color(def.emissive);
-      m.emissiveIntensity = def.emissiveIntensity ?? 1;
-    }
+    material = new THREE.MeshBasicMaterial({ color: c, fog: name !== 'sky', toneMapped: false });
+  } else if (def.emissiveFromPattern) {
+    const m = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(1, 1, 1).multiplyScalar(def.emissiveIntensity ?? 1), toneMapped: false });
     if (def.opacity !== undefined) {
       m.transparent = true;
       m.opacity = def.opacity;
       m.depthWrite = false;
+      m.side = THREE.DoubleSide;
+      if (name === 'forcefield') m.blending = THREE.AdditiveBlending;
     }
     material = m;
+  } else if (def.opacity !== undefined) {
+    material = new THREE.MeshBasicMaterial({ color: new THREE.Color(def.base), transparent: true, opacity: def.opacity, depthWrite: false, side: THREE.DoubleSide });
+  } else {
+    // Regular surfaces: texture x baked vertex lighting.
+    material = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true });
   }
   const info = { material, tile: def.tile ?? 128 };
   cache.set(key, info);

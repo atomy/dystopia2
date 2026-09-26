@@ -3440,10 +3440,10 @@
 // entity 10
 {
 "classname" "light"
-"origin" "-3392 0 160"
-"_color" "255 80 200"
-"light" "1.2"
-"range" "500"
+"origin" "-3392 0 170"
+"_color" "255 150 220"
+"light" "0.7"
+"range" "520"
 }
 // entity 11
 {
