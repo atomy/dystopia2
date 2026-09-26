@@ -474,7 +474,7 @@ function cyberspace(k: MapKit): void {
 
 /** Jump pad 330u from a tube wall that lobs you into the tube opening. `dir` = +1 east, -1 west. */
 function pad(k: MapKit, x: number, y: number, dir: 1 | -1): void {
-  k.brushEnt('cyber_jumppad', [boxAt(v3(x - 40, y - 72, CZ), v3(x + 40, y + 72, CZ + 40), 'd2/trigger')], { push: `${350 * dir} 0 800` });
+  k.brushEnt('cyber_jumppad', [boxAt(v3(x - 40, y - 72, CZ), v3(x + 40, y + 72, CZ + 40), 'd2/trigger')], { push: `${350 * dir} 0 850` });
   k.brushEnt('func_illusionary', [boxAt(v3(x - 40, y - 72, CZ), v3(x + 40, y + 72, CZ + 2), 'd2/cyber_data')]);
 }
 

@@ -54,8 +54,8 @@ Every implant gets a **fixed key that never changes with the loadout**. This fix
 | TAC Scanner | Head 3 | L, M | 15 per scan (team-shared ping, range 2048) | Q |
 | Thermal Vision | Head 2 | L, M, H | 1/s while on | T |
 | Stealth Suit | Body 5 | L | 1/s while cloaked; full invisibility when still or crouch-moving | C |
-| Leg Boosters | Body 2 | L, M, H | 1.25/s sprinting; boost jump costs up to 15/20/30 (L/M/H) | Shift (sprint), Shift + jump (boost) |
-| Mediplant | Body 3 | L, M | Teammates: 8 energy for 16 HP (24 on Heavy), range 384. Self: 4 HP free. Paused while decked. | E-hold (auto pulse) |
+| Leg Boosters | Body 2 | L, M, H | 1.25/s sprinting; boost jump costs up to 15/20/30 (L/M/H) | Shift (sprint), hold V (charge boost jump) |
+| Mediplant | Body 3 | L, M | Teammates: 8 energy for 16 HP (24 on Heavy), range 384. Self: 4 HP free. Paused while decked. | hold G (pulses every 1 s) |
 | SCS | Body 1 | L, M, H | Passive, +25 max energy | — |
 
 Stealth cannot be combined with Mediplant. The counters are: Stealth ↔ Thermal/TAC/EMP, and decker ↔ EMP (which ejects them).
@@ -90,7 +90,7 @@ Headshots (×1.5) apply to the AR only in this slice. Spread is not affected by 
 - **One decker per JIP.** Maps provide **2–3 JIPs per server** (fix).
 - The **meat body stays at the JIP, frozen and vulnerable.** If the body dies, the decker dies. An EMP on the body force-ejects them.
 - **Decker alarm and cyber mic** (fix): the decker hears meat sounds within 384 u of their body, and gets an alarm plus a HUD indicator when the body takes damage. Teammates get a "decker under attack" ping.
-- The JIP screen in meatspace shows the decker's live view.
+- The JIP hologram turns yellow while occupied and red while locked. *(Deferred: a live render-target view of the decker's screen.)*
 
 ### 8.2 Movement (faithful relative gravity)
 - **Servers** (big cubes) have gravity. Touching a **gravity tile** (`d2/cyber_floor`) re-orients your personal gravity so that the tile becomes the floor, which lets you walk on walls and ceilings.
@@ -174,7 +174,11 @@ tools/            map generator (d2_quarantine), TrenchBroom game config + FGD
 maps/             .map files (served to clients, loaded by the server)
 ```
 
-## 13. Milestones
+## 13. Controls (as built)
+
+WASD move · Space jump (hold to bounce in cyber) · Ctrl crouch · Shift sprint · V charge boost · Mouse1/2 fire/alt · R reload / cyber weapon mode · E use/hack/crack · 1–4 & wheel weapons · 1–9 in cyber: programs / minigame buttons · F jack in/out · Q TAC · T thermal · C stealth · G mediplant · K tactical respawn · Tab scores · M team & loadout · Y/U chat.
+
+## 14. Milestones
 
 - **M1, the slice (this doc):** everything above.
 - **M2:** the remaining weapons (Boltgun, Laser, Smartlocks, AR alt-fires, MK-808, GL, Tesla, Ion, Basilisk, Rocket), the remaining implants (Coldsuit, SWT, Sound Suppressor, Wired Reflexes, IFF Info, Cortex Bomb), Spider grenades, and a second map.

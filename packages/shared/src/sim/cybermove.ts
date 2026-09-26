@@ -236,7 +236,8 @@ export function cyberMove(
       const cur = vdot(s.velocity, wishdir);
       const add = capped - cur;
       if (add > 0) s.velocity = vma(s.velocity, Math.min(M.airAccel * wishspeed * dt, add), wishdir);
-      s.velocity = vma(s.velocity, -M.gravity * dt, s.up);
+      // First half of gravity (second half after moving) keeps arcs frame-rate independent.
+      s.velocity = vma(s.velocity, -M.gravity * dt * 0.5, s.up);
     }
   }
 
@@ -278,7 +279,11 @@ export function cyberMove(
     }
   }
 
-  if (!s.zeroG) s.onGround = groundCheck(world, s, filter);
+  if (!s.zeroG) {
+    const wasAir = !s.onGround;
+    s.onGround = groundCheck(world, s, filter);
+    if (wasAir && !s.onGround) s.velocity = vma(s.velocity, -M.gravity * dt * 0.5, s.up);
+  }
   return ev;
 }
 

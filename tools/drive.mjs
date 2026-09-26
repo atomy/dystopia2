@@ -36,6 +36,7 @@ await page.goto(url, { waitUntil: 'networkidle2' });
 
 if (!url.includes('room=')) {
   await page.type('#name', 'TestPilot');
+  if (process.env.BOTS !== undefined) await page.select('#bots', process.env.BOTS);
   await page.click('#host');
 } else {
   await page.type('#name', 'Joiner');
@@ -49,6 +50,14 @@ if (deploy) await deploy.click();
 
 for (const s of steps) {
   if (s.wait) await new Promise((r) => setTimeout(r, s.wait));
+  if (s.until) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < (s.timeout ?? 20000)) {
+      if (await page.evaluate(s.until)) break;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    logs.push(`[until] ${s.until} after ${Date.now() - t0} ms`);
+  }
   if (s.drive) await page.evaluate((d) => window.__d2.debugDrive({ lock: true, ...d }), s.drive);
   if (s.eval) {
     const v = await page.evaluate(s.eval);

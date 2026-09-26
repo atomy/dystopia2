@@ -42,6 +42,17 @@ export interface HudProgram {
   available: boolean;
 }
 
+export interface HudMarker {
+  x: number;
+  y: number;
+  kind: 'iff' | 'objective';
+  text: string;
+  color: string;
+  hp?: number;
+  armor?: number;
+  offscreen?: boolean;
+}
+
 export interface HudState {
   local: NetLocal | null;
   rules: NetRules | null;
@@ -101,11 +112,14 @@ export class Hud {
   private readonly radar: HTMLCanvasElement;
   private readonly fpsEl: HTMLDivElement;
   readonly chatLog: HTMLDivElement;
+  private readonly markerLayer: HTMLDivElement;
+  private readonly markerPool: HTMLDivElement[] = [];
   private noticeTimer = 0;
   private lastHtml = new Map<HTMLElement, string>();
 
   constructor(parent: HTMLElement) {
     this.root = el('div', 'hud', parent);
+    this.markerLayer = el('div', 'markers', this.root);
     this.crosshair = el('div', 'crosshair', this.root);
     this.hitmarker = el('div', 'hitmarker', this.root);
     this.alarm = el('div', 'alarm', this.root);
@@ -148,6 +162,29 @@ export class Hud {
     if (this.lastHtml.get(e) === html) return;
     this.lastHtml.set(e, html);
     e.innerHTML = html;
+  }
+
+  markers(list: HudMarker[]): void {
+    while (this.markerPool.length < list.length) this.markerPool.push(el('div', 'marker', this.markerLayer));
+    this.markerPool.forEach((d, i) => {
+      const m = list[i];
+      if (!m) {
+        d.style.display = 'none';
+        return;
+      }
+      d.style.display = '';
+      d.className = `marker ${m.kind}${m.offscreen ? ' off' : ''}`;
+      d.style.transform = `translate(${Math.round(m.x)}px, ${Math.round(m.y)}px)`;
+      d.style.color = m.color;
+      const html =
+        m.kind === 'iff'
+          ? `<span>${esc(m.text)}</span><i class="hpb"><b style="width:${Math.round((m.hp ?? 0) * 100)}%"></b></i><i class="arb"><b style="width:${Math.round((m.armor ?? 0) * 100)}%"></b></i>`
+          : `<em>◆</em><span>${esc(m.text)}</span>`;
+      if (d.dataset['h'] !== html) {
+        d.dataset['h'] = html;
+        d.innerHTML = html;
+      }
+    });
   }
 
   hit(kill: boolean): void {
@@ -340,7 +377,7 @@ export class Hud {
         let ph = s.programTarget ? `<div class="hint" style="margin-bottom:4px">${esc(s.programTarget)}</div>` : '';
         for (const p of s.programs) {
           const def = PROGRAMS[p.program]!;
-          ph += `<div class="p ${p.available ? '' : 'off'}"><b>${p.key}</b>${esc(def.name)}<div class="hint">${esc(def.desc)}</div></div>`;
+          ph += `<div class="p ${p.available ? '' : 'off'}"><b>${p.available ? p.key : '·'}</b>${esc(def.name)}${p.available ? `<div class="hint">${esc(def.desc)}</div>` : ''}</div>`;
         }
         this.set(this.programs, ph);
       }

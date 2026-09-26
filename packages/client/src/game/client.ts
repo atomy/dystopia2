@@ -636,12 +636,24 @@ export class ClientGame {
     // ---- input -> command -> prediction
     const me = this.latest?.players.find((p) => p.id === this.me) ?? null;
     if (this.debugRoute.length && this.pred && this.input.debug) {
-      const pos = this.pred.move.origin;
+      const c = this.pred.cyber;
       const wp = this.debugRoute[0]!;
-      if (Math.hypot(wp.x - pos.x, wp.y - pos.y) < 24) this.debugRoute.shift();
-      else {
-        this.yaw = (Math.atan2(wp.y - pos.y, wp.x - pos.x) * 180) / Math.PI;
-        this.input.debug.forward = 1;
+      if (c) {
+        const to = vsub(wp, c.origin);
+        if (vlen(to) < 40 || (vlen(to) < 160 && vdot(to, c.velocity) < 0 && vlen(c.velocity) > 150)) this.debugRoute.shift();
+        else {
+          const a = cyberAnglesFor(c.up, c.north, to);
+          this.yaw = a.yaw;
+          this.pitch = Math.max(-89, Math.min(89, a.pitch));
+          this.input.debug.forward = 1;
+        }
+      } else {
+        const pos = this.pred.move.origin;
+        if (Math.hypot(wp.x - pos.x, wp.y - pos.y) < 24) this.debugRoute.shift();
+        else {
+          this.yaw = (Math.atan2(wp.y - pos.y, wp.x - pos.x) * 180) / Math.PI;
+          this.input.debug.forward = 1;
+        }
       }
       if (!this.debugRoute.length) this.input.debug.forward = 0;
     }
@@ -913,8 +925,6 @@ export class ClientGame {
       }
       const alive = (pb.flags & PF.ALIVE) !== 0;
       const pdecked = (pb.flags & PF.DECKED) !== 0;
-      rv.model.object.visible = !isMe || !alive || (decked && false);
-      if (isMe && alive) rv.model.object.visible = false;
       const vel = pb.velocity;
       rv.model.update(
         {
@@ -935,6 +945,8 @@ export class ClientGame {
         },
         dt,
       );
+      // First person: never draw our own living body around the camera.
+      if (isMe && alive) rv.model.object.visible = false;
       // Remote footsteps.
       if (!isMe && alive && (pb.flags & PF.ONGROUND) !== 0 && !(pb.flags & PF.DUCKED) && !(pb.flags & PF.STEALTH)) {
         rv.stepDist += vdist(origin, rv.lastPos);
@@ -1169,6 +1181,7 @@ export class ClientGame {
       const stage = this.latest?.rules.stage ?? 1;
       for (const o of this.objectives) if (propNum(o, 'stage', 1) === stage) blips.push({ pos: o.origin, color: '#ffd21f', size: 3 });
     }
+    hud.markers(this.buildMarkers(me, team, decked));
     hud.update({
       local: L,
       rules: this.latest?.rules ?? null,
@@ -1187,6 +1200,52 @@ export class ClientGame {
     });
     void CLASSES;
     void parseVec;
+  }
+
+  /** IFF tags over visible team-mates and edge-clamped objective markers. */
+  private buildMarkers(me: NetPlayer | null, team: number, decked: boolean): import('../ui/hud.js').HudMarker[] {
+    const out: import('../ui/hud.js').HudMarker[] = [];
+    const cam = this.renderer!.camera;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const camSim = { x: cam.position.x, y: -cam.position.z, z: cam.position.y };
+    const project = (p: Vec3): { x: number; y: number; behind: boolean } => {
+      const v = toThree(p).project(cam);
+      return { x: ((v.x + 1) / 2) * W, y: ((1 - v.y) / 2) * H, behind: v.z > 1 };
+    };
+    if (!decked) {
+      for (const p of this.latest?.players ?? []) {
+        if (p.id === this.me || p.team !== team || !(p.flags & PF.ALIVE) || p.flags & PF.DECKED) continue;
+        const head = vadd(p.origin, v3(0, 0, 84));
+        if (vdist(head, camSim) > 2500) continue;
+        const tr = this.world!.level.collision.trace(camSim, head, v3(), v3(), CONTENTS_SOLID, () => false);
+        if (tr.fraction < 0.98) continue;
+        const s = project(head);
+        if (s.behind || s.x < 0 || s.x > W || s.y < 0 || s.y > H) continue;
+        const c = CLASSES[p.cls]!;
+        out.push({ x: s.x, y: s.y, kind: 'iff', text: this.playerName(p.id), color: TEAM_COLORS[team] ?? '#fff', hp: p.health / c.health, armor: p.armor / Math.max(1, c.armor) });
+      }
+      const stage = this.latest?.rules.stage ?? 1;
+      for (const o of this.objectives) {
+        const st = this.world!.ents.get(o.id);
+        if (propNum(o, 'stage', 1) !== stage || (st && st.state & 1)) continue;
+        const pos = vadd(o.origin, v3(0, 0, 40));
+        const s = project(pos);
+        let x = s.x;
+        let y = s.y;
+        let off = s.behind || x < 40 || x > W - 40 || y < 40 || y > H - 40;
+        if (s.behind) {
+          x = W - x;
+          y = H - 60;
+        }
+        x = Math.max(60, Math.min(W - 60, x));
+        y = Math.max(60, Math.min(H - 80, y));
+        off ||= false;
+        const dist = Math.round(vdist(pos, me?.origin ?? camSim) / 39.37);
+        out.push({ x, y, kind: 'objective', text: `${o.props['label'] ?? 'Objective'} · ${dist}m`, color: '#ffd21f', offscreen: off });
+      }
+    }
+    return out;
   }
 
   shutdown(): void {
