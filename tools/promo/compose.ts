@@ -30,12 +30,20 @@ for (const shot of SHOTS) {
 const music = join(out, 'music.wav');
 if (!existsSync(music)) throw new Error('no soundtrack; run tools/promo/music.ts first');
 const video = join(out, 'dystopia2-promo.mp4');
+const small = join(out, 'dystopia2-promo-720p.mp4');
 const grade = "eq=contrast=1.12:brightness=0.02:saturation=1.3:gamma=1.08,curves=r='0/0 0.5/0.52 1/1':b='0/0.02 0.5/0.52 1/1'";
 execFileSync(
   'ffmpeg',
   ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(seq, '%06d.jpg'), '-i', music,
-    '-vf', `${grade},format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-r', String(FPS),
+    '-vf', `${grade},format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-r', String(FPS),
     '-c:a', 'aac', '-b:a', '256k', '-shortest', '-movflags', '+faststart', video],
   { stdio: 'inherit' },
 );
-console.log(`wrote ${video} (${(n / FPS).toFixed(1)} s, ${n} frames)`);
+// A lighter copy for chat apps with upload limits.
+execFileSync(
+  'ffmpeg',
+  ['-y', '-loglevel', 'error', '-i', video, '-vf', 'scale=1280:720:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '25',
+    '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', small],
+  { stdio: 'inherit' },
+);
+console.log(`wrote ${video} and ${small} (${(n / FPS).toFixed(1)} s, ${n} frames)`);

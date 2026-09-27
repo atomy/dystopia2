@@ -7,7 +7,7 @@ npx tsx tools/promo/record.ts --preview            # every 6th frame, 720p: quic
 npx tsx tools/promo/record.ts --preview core bhop  # only some shots
 npx tsx tools/promo/record.ts --final              # all frames at 1920x1080 (about 30 min)
 npx tsx tools/promo/music.ts                       # out/promo/music.wav
-npx tsx tools/promo/compose.ts                     # out/promo/dystopia2-promo.mp4
+npx tsx tools/promo/compose.ts                     # out/promo/dystopia2-promo.mp4 (+ a 720p copy)
 ```
 
 Output goes to `out/promo/` (git-ignored). Needs Chrome at `/usr/bin/google-chrome-stable` (or `CHROME=...`) and `ffmpeg` with libx264.

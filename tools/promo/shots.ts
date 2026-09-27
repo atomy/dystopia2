@@ -202,8 +202,8 @@ export const SHOTS: Shot[] = [
     name: 'heavy',
     dur: 4,
     bots: 8,
-    preroll: 12.9,
-    warm: 0.6,
+    preroll: 13.3,
+    warm: 0.7,
     god: true,
     possess: (g) => nearest(g, Team.Punk, v3(-952, 38, 0), [2]) ?? nearest(g, Team.Punk, v3(-952, 38, 0), [1]),
     frame: (c) => ({
