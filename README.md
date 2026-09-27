@@ -101,7 +101,8 @@ packages/server   Node room server: authoritative 60 Hz sim, combat + lag compen
                   programs, objectives & waves, bots (nav grid + cyber waypoints)
 packages/client   three.js client: baked-light level renderer, prediction/interpolation, HUD, menus,
                   procedural WebAudio SFX
-tools/            map generator (tools/maps), TrenchBroom game config (tools/trenchbroom), test driver
+tools/            map generator (tools/maps), TrenchBroom game config (tools/trenchbroom), test driver,
+                  promo video recorder (tools/promo)
 maps/             .map files loaded by server and client
 docs/             DESIGN.md (decisions), HANDOVER.md (status + M2/M3 plan), research/dystopia-original.md
 ```
@@ -118,7 +119,9 @@ npx tsx packages/server/scripts/botsim.ts 10 4    # headless bot match: 10 simul
 node tools/drive.mjs out '[{"wait":3000},{"shot":"view"}]'   # headless Chrome (SwiftShader) screenshots
 ```
 
-In dev builds the client exposes `window.__d2` (debugDrive, debugRoute, debugCam, debugState) for scripted testing.
+In dev builds the client exposes `window.__d2` (debugDrive, debugWeapon, debugRoute, debugCam, debugState) for scripted testing.
+
+The promo trailer is recorded from real bot matches by `tools/promo` (see [tools/promo/README.md](tools/promo/README.md)).
 
 ## Credits
 

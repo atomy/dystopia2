@@ -210,6 +210,9 @@ export class ClientGame {
   /** Dev/test hook: free camera override (sim coordinates) for visual checks. */
   debugCam: { pos: Vec3; yaw: number; pitch: number; up?: Vec3 } | null = null;
 
+  /** Dev/test hook: raw weapon/program field for the next command (with debugDrive buttons). */
+  debugWeapon = 0;
+
   /** Dev/test hook: walk through waypoints (sim x,y) automatically. */
   debugRoute: Vec3[] = [];
 
@@ -677,6 +680,10 @@ export class ClientGame {
             weapon = prog;
           }
         } else if (n <= 4) weapon = n;
+      }
+      if (this.debugWeapon) {
+        weapon = this.debugWeapon;
+        this.debugWeapon = 0;
       }
       if (!decked && this.input.wheel !== 0) {
         weapon = this.cycleWeapon(Math.sign(this.input.wheel));
