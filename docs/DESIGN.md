@@ -181,5 +181,56 @@ WASD move · Space jump (hold to bounce in cyber) · Ctrl crouch · Shift sprint
 ## 14. Milestones
 
 - **M1, the slice (this doc):** everything above.
+- **Art pass (now first, see §15.1):** gritty look, AI-generated assets, `d2_quarantine` rebuilt as a city block.
 - **M2:** the remaining weapons (Boltgun, Laser, Smartlocks, AR alt-fires, MK-808, GL, Tesla, Ion, Basilisk, Rocket), the remaining implants (Coldsuit, SWT, Sound Suppressor, Wired Reflexes, IFF Info, Cortex Bomb), Spider grenades, and a second map.
-- **M3:** art pass (models and animation), server browser, stats, stopwatch mode.
+- **M3:** server browser, stats and awards, voice, match features, options, hosting (§15.3–15.5). Stopwatch mode is dropped.
+
+## 15. Decisions for the next milestones (2026-09-27)
+
+### 15.1 Art
+
+| Area | Decision |
+|---|---|
+| Priority | Art comes **before** M2 content. |
+| Look | **Gritty cyberpunk like the original**: grimy metal, signage, near-realistic PBR textures. Team colours must stay readable. |
+| Target | 60 fps on a **mid-range gaming PC** (a dedicated GPU from the last ~6 years), with a low setting for weaker machines. First download **up to ~100 MB** (KTX2 textures, compressed meshes); later maps stream in. |
+| Scope | Everything: player characters with animation, first-person weapon models, level textures, props and skybox, cyberspace visuals and effects. |
+| Atmosphere | Rain with wet reflections; neon signs and holo ads; steam, sparks and debris. (No volumetric fog or light shafts for now.) |
+| Violence | Blood and gibs, like the original, with a settings toggle to turn it down. |
+| Map | `d2_quarantine` is **rebuilt as a believable city block** with the same three-stage flow. Bot navigation, cyber waypoints and balance get redone and retested. |
+| Review | A contact sheet per asset batch (renders in-game) for the owner to approve before moving on. |
+
+### 15.2 Asset pipeline
+
+- **Source:** AI-generated, with Claude running the whole pipeline. Free tiers only.
+- **Where the art lives:** the **private** repo `atomy/dystopia2-assets`, never this public one. The build fetches it.
+- **Images and textures:** Z-Image Turbo (Apache 2.0) on the owner's Windows PC (AMD RX 7700 XT, 12 GB) via **stable-diffusion.cpp `sd-server` with the Vulkan backend**. It listens on the LAN, and a firewall rule admits only the dev VM. The kit is in [`tools/gpu-host/`](../tools/gpu-host/).
+- **3D meshes:** **TRELLIS.2** (MIT) on Hugging Face's free ZeroGPU quota, called from the dev VM with the owner's read token in a git-ignored `.env`. It's used for characters and weapons, a few per day. Environment pieces and props are built by script in **Blender** (installed on the dev VM).
+- **Rigging and animation:** scripted in Blender. Every character is rigged to one shared humanoid skeleton, and the clips are built by script: run, crouch, jump, ledge hang, fire, reload, and sitting jacked in.
+- **Not used:** Hunyuan3D, because its licence excludes the EU, UK and South Korea; and anything needing an NVIDIA GPU locally.
+- **Sound:** royalty-free recorded SFX (e.g. Sonniss GDC bundles, CC0) layered and processed by script; the raw files live in the private assets repo.
+- **Music:** menu music plus stingers (stage captured, win, loss), AI-generated with ACE-Step (Apache 2.0) on a free Hugging Face GPU demo. In-game stays sound-effects only.
+
+### 15.3 Content (M2)
+
+- Numbers: **v1.2 plus the known 1.4 fixes** (Laser Rifle 20% damage floor, Basilisk magazine 15, Tesla range 768).
+- Rocket Launcher: **laser-guided** in M2; fly-by-wire comes later.
+- Laser Rifle and Tesla Rifle have **their own ammo**, separate from implant energy. It does not refill over time: ammo dispensers and respawning restock it, like other primaries.
+- Implant slot costs and class slots stay as the original; tune them only after playtests.
+- Second map: **`d2_uplink`** (Silo-like: timer, hybrid objective, carryable), **generated in code** with the map kit.
+
+### 15.4 Multiplayer and meta (M3)
+
+- **Voice:** push-to-talk team voice over WebRTC, with the game server only connecting players. It sits alongside the decker cyber mic.
+- **Identity:** a callsign plus a random local token. No accounts and no personal data. Stats and end-of-round awards are kept per callsign.
+- **Match features:** map rotation with an end-of-round vote, team auto-balance, and a spectator free camera. No stopwatch mode.
+- **Bots:** Easy/Normal/Hard, chosen by the host.
+- **Options:** key rebinding (the fixed implant keys become defaults); FOV, separate zoom sensitivity and inverted mouse Y. No gamepad.
+- **Language:** English only, with all UI text in one table so a translation can be added later.
+- **Onboarding:** tips only (loading-screen tips, a controls overlay, first-time context hints). No tutorial map.
+
+### 15.5 Hosting
+
+- First real games are **LAN / friends**, so bandwidth and anti-cheat work waits until public play.
+- The VPS already runs its own **reverse proxy**, so the docs cover its WebSocket settings; no bundled Caddy.
+- Default port **9090**.

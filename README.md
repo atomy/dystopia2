@@ -104,7 +104,8 @@ packages/server   Node room server: authoritative 60 Hz sim, combat + lag compen
 packages/client   three.js client: baked-light level renderer, prediction/interpolation, HUD, menus,
                   procedural WebAudio SFX
 tools/            map generator (tools/maps), TrenchBroom game config (tools/trenchbroom), test driver,
-                  promo video recorder (tools/promo)
+                  promo video recorder (tools/promo), asset tools (tools/assets),
+                  Windows GPU host kit for AI textures (tools/gpu-host)
 maps/             .map files loaded by server and client
 docs/             DESIGN.md (decisions), HANDOVER.md (status + M2/M3 plan), research/dystopia-original.md
 ```

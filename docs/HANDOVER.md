@@ -1,4 +1,4 @@
-# Dystopia 2 handover: milestones 2 and 3
+# Dystopia 2 handover: art pass, milestones 2 and 3
 
 This document is for whoever continues the project, human or agent. It covers:
 
@@ -9,7 +9,7 @@ This document is for whoever continues the project, human or agent. It covers:
 
 Read it alongside [DESIGN.md](DESIGN.md), which records the decisions, and [research/dystopia-original.md](research/dystopia-original.md), which has the original game's numbers.
 
-Status as of 2026-09-26: M1 is complete. `main` is at `aa8d080` plus this document, and it has been pushed to `github.com/atomy/dystopia2`, which is a **public** repo.
+Status as of 2026-09-27: M1 is complete and the owner has answered the M2/M3 questions (DESIGN.md §15). The **art pass now comes first**. `main` is pushed to `github.com/atomy/dystopia2`, which is a **public** repo; art lives in the private `atomy/dystopia2-assets`.
 
 ---
 
@@ -29,7 +29,7 @@ Status as of 2026-09-26: M1 is complete. `main` is at `aa8d080` plus this docume
 ```bash
 npm install
 npm run dev                  # server :9090 (tsx watch) + Vite client :5173
-npm test                     # vitest: 22 tests (shared movement/cyber/codec, server rules, bot match)
+npm test                     # vitest: 23 tests (shared movement/cyber/codec, server rules, map sanity, bot match)
 npm run typecheck            # or per package: npx tsc -p packages/<shared|server|client> --noEmit; npx tsc -p tools --noEmit
 npm run build && npm start   # production: one port serves client + maps + ws
 docker compose up -d --build # VPS
@@ -185,11 +185,12 @@ packages/client/src
 
 **Goal:** the full original arsenal and implant set, a primary weapon choice in the loadout, and a second map that uses new objective types.
 
-**Open questions for the owner before starting:**
-- Which versions of the numbers: v1.2 or the 1.4/1.5 retunes?
-- Should the Rocket Launcher's fly-by-wire mode be in?
-- Which map concept for the second map?
-- Should implant slot costs change now that there are 14 implants?
+**Answered by the owner on 2026-09-27** (DESIGN.md §15.3):
+- Numbers: v1.2 plus the known 1.4 fixes.
+- Rocket Launcher: laser-guided only; fly-by-wire comes later.
+- Second map: `d2_uplink` as below, generated in code.
+- Slot costs: unchanged until playtests say otherwise.
+- Laser and Tesla ammo is separate from implant energy, with no regeneration; dispensers and respawns restock it.
 
 ### 6.1 Loadout plumbing (do first)
 
@@ -204,14 +205,14 @@ Numbers are from the research doc §4.1. Headshots (×1.5) apply to the Boltgun,
 | Weapon | Class | Implementation notes |
 |---|---|---|
 | **Boltgun** | L | New projectile `ProjKind.Bolt`: fast, low gravity, **bounces at shallow angles**, sticks in walls (and moving doors). Damage 85, headshot 127, magazine 3 loaded one at a time, 1 rps. **Alt-fire:** detonate the oldest bolt in flight or stuck in a wall (radius 256, 48 damage). Needs projectile hit tests against lag-compensated hitboxes (reuse `traceShot` per tick segment). |
-| **Laser Rifle** | L | Hold to charge for 3 s and release at the peak; the beam is visible and audible to others while charging (`PF` flag). 175 max / 263 headshot. Damage scales from 10% at 64 u or less to 100% at 512 u or more (1.4 raised the floor to 20%). Energy ammo with no reload: decide whether it uses the implant energy pool (open question). **Alt-fire:** variable zoom. |
+| **Laser Rifle** | L | Hold to charge for 3 s and release at the peak; the beam is visible and audible to others while charging (`PF` flag). 175 max / 263 headshot. Damage scales from 20% at 64 u or less (the 1.4 floor) to 100% at 512 u or more. Its own energy ammo, no reload and no regeneration; dispensers and respawns restock it. **Alt-fire:** variable zoom. |
 | **Smartlock Pistols** | L | Akimbo automatic pistols: 16 damage, 6.66 rps, magazine 30. **Alt-fire:** fire a tracer (one per pistol); a tagged target is auto-tracked while visible, giving shots a hitbox bias toward it. Server-side lock state per shooter, and a HUD lock indicator. |
 | **MK-808** | M | Semi-automatic hitscan with zero spread: 50 / 75 headshot, magazine 8, 0.59 s between shots. **Alt-fire:** zoom (reuse the AR zoom path). |
 | **Grenade Launcher** | M | Reuse the grenade projectile: 65 explosive damage (×2 vs armor), radius 225, magazine 4. **Alt-fire:** hold to arm, so the grenade explodes on its next contact. |
-| **Tesla Rifle** | M | Short-range lightning, 2 arcs of 7 damage per tick at 10 ticks/s, range 1024 (768 from 1.4), energy ammo. Chain to a second target within about 150 u. **Alt-fire:** a charged ball-lightning projectile the shooter can "whip" around corners (it steers toward the crosshair), radius 320, costs 25 energy. |
+| **Tesla Rifle** | M | Short-range lightning, 2 arcs of 7 damage per tick at 10 ticks/s, range 768 (the 1.4 value), its own energy ammo like the Laser Rifle. Chain to a second target within about 150 u. **Alt-fire:** a charged ball-lightning projectile the shooter can "whip" around corners (it steers toward the crosshair), radius 320, costs 25 energy. |
 | **Ion Cannon** | H | Hitscan with an 8×8×8 hull; damage 120 close falling to 60 far (over 256–2048 u), 2.5 s cycle. **Alt-fire:** zoom. Tracer uses the thick beam effect. |
-| **Basilisk** | H | Automatic shotgun, 3 flechettes × 15, 3.33 rps, magazine 12 (15 from 1.4). **Alt-fire:** a flak shell (projectile, about 70 damage, radius 256) that costs 3 bursts. |
-| **Rocket Launcher** | H | Laser-guided: the rocket turns toward where the shooter aims, with brief lock-on, and can't lock stealthers. 115 damage plus an explosion of radius 340, 1 rocket, 7–9 s reload. Rockets can be shot down (give the projectile HP). **Alt-fire:** fly-by-wire, steering with the movement keys through a rocket camera, with mid-air detonation. This needs a client camera mode and a "controlled projectile" state in `NetLocal` (it's the hardest weapon). |
+| **Basilisk** | H | Automatic shotgun, 3 flechettes × 15, 3.33 rps, magazine 15 (the 1.4 value). **Alt-fire:** a flak shell (projectile, about 70 damage, radius 256) that costs 3 bursts. |
+| **Rocket Launcher** | H | Laser-guided: the rocket turns toward where the shooter aims, with brief lock-on, and can't lock stealthers. 115 damage plus an explosion of radius 340, 1 rocket, 7–9 s reload. Rockets can be shot down (give the projectile HP). **Fly-by-wire alt-fire is deferred past M2** (owner's call): it needs a client rocket-camera mode and a "controlled projectile" state in `NetLocal`. |
 | **Spider grenade** | H ×2 | Deploys a crawling mine: `ProjKind.Spider` with ground movement via the nav graph or simple steering. It hunts the nearest *visible* enemy and ignores stealthers. About 92 damage, radius 175, 20 HP (shootable). |
 
 The client work for every weapon is the viewmodel, world model, fire sound, tracer or projectile visual, ammo HUD, and bot usage (range bands per weapon in `bots.ts`).
@@ -256,35 +257,57 @@ Build it with the map kit, or author it by hand in TrenchBroom. The owner may pr
 - A LAN playtest with humans; fold the notes back into DESIGN.md.
 - Protocol bumped, and FGD and README updated.
 
-## 7. Milestone 3: art, meta and hosting
+## 7. Art pass (now first) and milestone 3
 
-**Open questions for the owner before starting:**
-- An art direction decision: stay procedural or neon, commission or buy CC0 models, or use AI-assisted assets.
-- Whether stats need accounts. The default is no accounts, just callsign plus a local token.
-- The VPS target: domain, TLS, region.
+The owner's answers from 2026-09-27 are in DESIGN.md §15. Art comes **before** M2 content.
 
-1. **Art pass.**
-   - Replace `render/players.ts` rigs with glTF characters (per class and team): an `AnimationMixer` driven by the same pose inputs (speed, crouch, air, hang, decked, fire).
-   - glTF viewmodels.
-   - Upgrade material and texture sets; keep the `d2/<name>` texture keys so maps don't change.
-   - Optionally lightmaps later; the vertex bake is the baseline.
-   - Proper skybox and street props.
-   - A JIP live-view render target (deferred from M1).
-2. **Server browser.** `/api/rooms` exists. Add public or private rooms, player counts, map, ping estimates, and a join-by-link flow. Optionally a list across several servers (a tiny registry service).
-3. **Persistent stats and awards.** Server-side SQLite on a Docker volume holding per-callsign totals: kills, deaths, captures, hacks, heals, time decked. End-of-round awards (for example "Nurse Betty" for most healing, as in the original). A stats page.
-4. **Stopwatch mode (ABBA).** Teams swap sides and the second attacker must beat the first attacker's time. This needs round-pair state in `RulesState` and HUD support.
-5. **Hosting.**
-   - A Caddy compose profile (automatic TLS for `wss`).
-   - Rate limits on the hello handshake and chat.
-   - A room idle-timeout config.
-   - A basic admin kick/ban by IP for hosts.
-6. **Performance and networking.** The delta compression and interest management from §5 (items 2 and 3) are prerequisites for public 8v8 on a small VPS.
-7. **Onboarding.** A tutorial ("Lobby"-style map with prompts), loading-screen tips, and colour-blind-safe team colours.
+### 7.1 Art pass
+
+**Direction:**
+- Gritty cyberpunk like the original, with readable team colours.
+- 60 fps on a mid-range gaming PC, and a first download of about 100 MB at most.
+
+**Pipeline (DESIGN.md §15.2).** Everything is driven from the dev VM, which has Blender but **no GPU**:
+- **Textures and concept images:** Z-Image Turbo on the owner's Windows PC (AMD RX 7700 XT, 12 GB) through stable-diffusion.cpp `sd-server` (Vulkan). The owner starts it with [`tools/gpu-host/`](../tools/gpu-host/). Scripts on the VM call it over the LAN. The address goes in the git-ignored `.env` (`D2_IMAGE_SERVER`), never in the repo.
+- **Characters and weapons:** TRELLIS.2 on Hugging Face ZeroGPU with the owner's free read token (`HF_TOKEN` in `.env`). The quota is a few generations a day, so queue jobs and cache every result.
+- **Environment kit and props:** built by script in Blender and textured with the generated textures.
+- **Rigging and animation:** Blender scripts on one shared humanoid skeleton.
+- **Output:** glTF with KTX2 textures, committed to the **private** repo `atomy/dystopia2-assets`, which the build fetches. Nothing generated goes into this public repo.
+- **Review:** one contact sheet per batch (in-game renders) for the owner's approval.
+
+**Work items:**
+1. **Asset tooling.** Clients for both generators, a job queue with caching, Blender headless scripts (cleanup, decimation, UVs, baking, rigging, clips, glTF export), KTX2 compression, and fetching the assets repo at build time.
+2. **Characters.**
+   - Replace the `render/players.ts` rigs with glTF characters (3 classes × 2 teams), driven by an `AnimationMixer` from the same pose inputs (speed, crouch, air, hang, decked, fire).
+   - Blood and gibs, with a settings toggle.
+3. **First-person weapons:** glTF viewmodels with fire and reload clips.
+4. **World.**
+   - Rebuild `d2_quarantine` as a believable city block with the same three stages, from a modular kit of trims, props and signage.
+   - Keep the `d2/<name>` texture keys.
+   - Consider lightmaps over the vertex bake.
+   - Redo the bot nav checks, the cyber waypoints and the spawn-safety test (`map sanity` in `game.test.ts`), then balance with `botsim`.
+5. **Atmosphere:** rain with wet reflections; neon signs and holo ads; steam, sparks and debris; a skyline skybox.
+6. **Cyberspace and effects:** avatars, node and ICE visuals, tracers, explosions, and the jack-in-point live view (deferred from M1).
+7. **Audio.**
+   - Royalty-free recorded SFX (Sonniss GDC bundles, CC0) replace the procedural one-shots; the raw files live in the private repo.
+   - Menu music and stingers, AI-generated with ACE-Step on a free Hugging Face GPU demo.
+
+### 7.2 Milestone 3: meta and hosting
+
+1. **Server browser.** `/api/rooms` already exists. Add public or private rooms, player counts, the map, ping estimates, and a join-by-link flow.
+2. **Stats and awards.** Server-side SQLite on a Docker volume, with per-callsign totals keyed by a random local token (no accounts): kills, deaths, captures, hacks, heals, time decked. End-of-round awards (for example "Nurse Betty" for most healing). A stats page.
+3. **Voice.** Push-to-talk team voice over WebRTC, with the room server only connecting players; it sits alongside the decker cyber mic.
+4. **Match features:** map rotation with an end-of-round vote, team auto-balance (move the most recent joiner), and a spectator free camera. (Stopwatch mode was dropped.)
+5. **Bots:** Easy/Normal/Hard chosen by the host (reaction time, aim, program speed, how often bots jack in).
+6. **Options:** key rebinding (the fixed implant keys become defaults); FOV, separate zoom sensitivity and inverted mouse Y. English only, with all UI text in one table.
+7. **Onboarding:** loading-screen tips, a controls overlay, and first-time context hints. No tutorial map.
+8. **Hosting.** The VPS already has a reverse proxy, so document its WebSocket settings (upgrade headers, timeouts); no bundled Caddy. Also rate limits on the hello handshake and chat, a room idle timeout, and host kick/ban.
+9. **Performance and networking** (before any public play; the first games are LAN and friends): the delta compression and interest management from §5.
 
 ## 8. Suggested order of work
 
-1. A LAN playtest of the M1 slice, then fix the feel and audio issues it finds.
-2. M2.1 loadout plumbing, then weapons one at a time (Boltgun, MK-808, GL and Ion are the easy wins; the Rocket's fly-by-wire mode goes last), then implants.
-3. Snapshot delta compression (needed before public hosting anyway).
+1. A LAN playtest of the M1 slice, then fix the feel issues it finds. (The audio mix waits for the recorded SFX.)
+2. The art pass (§7.1): tooling first, then one batch at a time with contact-sheet reviews.
+3. M2.1 loadout plumbing, then weapons one at a time (Boltgun, MK-808, GL and Ion are the easy wins), then implants.
 4. The `d2_uplink` entities (timer, requires, carryable), then the map, then bot support.
-5. The M3 items in the order the owner prioritises them.
+5. M3 (§7.2) in the order the owner prioritises; delta compression before any public hosting.
