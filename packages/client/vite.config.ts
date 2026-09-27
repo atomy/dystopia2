@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 
-const server = process.env['D2_SERVER'] ?? 'http://localhost:8080';
+const server = process.env['D2_SERVER'] ?? 'http://localhost:9090';
 
 export default defineConfig({
   server: {

@@ -59,7 +59,7 @@ npm install
 npm run dev
 ```
 
-This starts the game server on `:8080` (auto-reloads) and the Vite client on `:5173`. Open **http://localhost:5173**, pick a callsign and **Host game**, then share the room code or the invite link (`?room=CODE`). Click into the game to capture the mouse.
+This starts the game server on `:9090` (auto-reloads) and the Vite client on `:5173`. Open **http://localhost:5173**, pick a callsign and **Host game**, then share the room code or the invite link (`?room=CODE`). Click into the game to capture the mouse.
 
 If the dev machine is a VM or another box, `localhost` on your desktop is not that machine: use its LAN address instead, e.g. `http://192.168.x.y:5173` (Vite listens on all interfaces). Friends on the LAN use the same URL. If `npm run dev` complains that a port is in use, another dev server is already running; stop it first or use that one.
 
@@ -69,7 +69,7 @@ If the dev machine is a VM or another box, `localhost` on your desktop is not th
 npm run build && npm start
 ```
 
-That serves everything from one port (8080 by default). Or use Docker:
+That serves everything from one port (9090 by default). Or use Docker:
 
 ```bash
 docker compose up -d --build

@@ -6,7 +6,7 @@ services:
     image: dystopia2:latest
     restart: unless-stopped
     ports:
-      - "${D2_PORT:-8080}:8080"
+      - "${D2_PORT:-9090}:9090"
     environment:
       MAX_ROOMS: "${D2_MAX_ROOMS:-16}"
       DEFAULT_MAP: d2_quarantine

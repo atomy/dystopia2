@@ -10,7 +10,7 @@ import { Room, type Client } from './room.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..', '..');
-const PORT = Number(process.env['PORT'] ?? 8080);
+const PORT = Number(process.env['PORT'] ?? 9090);
 const HOST = process.env['HOST'] ?? '0.0.0.0';
 const MAPS_DIR = resolve(process.env['MAPS_DIR'] ?? join(repoRoot, 'maps'));
 const CLIENT_DIR = resolve(process.env['CLIENT_DIR'] ?? join(repoRoot, 'packages', 'client', 'dist'));

@@ -28,14 +28,14 @@ Status as of 2026-09-26: M1 is complete. `main` is at `aa8d080` plus this docume
 
 ```bash
 npm install
-npm run dev                  # server :8080 (tsx watch) + Vite client :5173
+npm run dev                  # server :9090 (tsx watch) + Vite client :5173
 npm test                     # vitest: 22 tests (shared movement/cyber/codec, server rules, bot match)
 npm run typecheck            # or per package: npx tsc -p packages/<shared|server|client> --noEmit; npx tsc -p tools --noEmit
 npm run build && npm start   # production: one port serves client + maps + ws
 docker compose up -d --build # VPS
 ```
 
-- **LAN or VM access:** when the dev box is a VM, open `http://<vm-ip>:5173` from the desktop, not `localhost`. Vite listens on all interfaces and proxies `/ws`, `/maps` and `/api` to `:8080`.
+- **LAN or VM access:** when the dev box is a VM, open `http://<vm-ip>:5173` from the desktop, not `localhost`. Vite listens on all interfaces and proxies `/ws`, `/maps` and `/api` to `:9090`.
 - **Port conflicts:** if `npm run dev` reports a port in use, another dev server (for example one started by an agent through `.claude/launch.json`) is already running.
 - **Headless bot match:** `npx tsx packages/server/scripts/botsim.ts <minutes> <botsPerTeam>` runs the real room loop far faster than real time and prints stage changes. `VERBOSE=1` prints every bot's goal, and `TRACE=<name>` traces one decker's cyber state.
 - **Visual and end-to-end checks:** `node tools/drive.mjs <outDir> '<json steps>'`. It runs the installed Chrome headless with SwiftShader and supports these steps:

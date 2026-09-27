@@ -5,7 +5,7 @@
       "name": "server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "@d2/server"],
-      "port": 8080
+      "port": 9090
     },
     {
       "name": "client",
