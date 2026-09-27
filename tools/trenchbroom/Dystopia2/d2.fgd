@@ -329,7 +329,8 @@
 @PointClass base(Targetname, Target, Angle, Label) size(-12 -12 -12, 12 12 12) color(178 43 255) = d2_node :
 	"Cyberspace node screen. A decker of the non-owning team hacks it to fire its targets (open a door, capture a " +
 	"turret, drop a force field...) and complete its objective. Usually sits in a node house whose entrance is a " +
-	"cyber_ice doorway. Actions: enable, disable."
+	"cyber_ice doorway. Actions: enable, disable, capture (hand the node to the activator's team, " +
+	"clearing protection, without firing its targets)."
 [
 	action(choices) : "Action" : : "Action sent to targets without a :action suffix when the node is hacked." =
 	[

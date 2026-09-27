@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Buttons, ClassId, DEFAULT_LOADOUTS, ImplantId, Team, TICK_RATE, v3, type UserCmd } from '@d2/shared';
+import { Buttons, ClassId, CONTENTS_SOLID, DEFAULT_LOADOUTS, ImplantId, Team, TICK_RATE, v3, vadd, vdist, type UserCmd } from '@d2/shared';
 import { Game } from '../src/game/game.js';
 import { Room } from '../src/room.js';
 import { tryJackIn } from '../src/game/cyber.js';
@@ -80,6 +80,44 @@ describe('game rules', () => {
     expect(p.decked).toBe(false);
     expect(p.health).toBeLessThan(hp);
     expect(jip.lockUntil).toBeGreaterThan(g.now + 8);
+  });
+});
+
+describe('map sanity', () => {
+  const maps = readdirSync(join(root, 'maps')).filter((f) => f.endsWith('.map'));
+
+  it.each(maps)('%s: no live spawn is in sight of a hostile turret, in any stage', (file) => {
+    const g = new Game('q', readFileSync(join(root, 'maps', file), 'utf8'), { friendlyFire: false });
+    const settle = () => {
+      for (let i = 0; i < TICK_RATE * 5; i++) g.step();
+    };
+    const exposed: string[] = [];
+    const check = () => {
+      for (const team of [Team.Punk, Team.Corp]) {
+        const groups = new Set(g.spawnGroups.filter((s) => s.enabled && s.team === team).map((s) => s.name));
+        const pts = g.spawnPoints.filter((s) => s.team === team && groups.has(s.group));
+        for (const t of g.turrets) {
+          if (!t.enabled || !t.alive || !t.team || t.team === team) continue;
+          const seen = pts.filter((s) => {
+            const aim = vadd(s.origin, v3(0, 0, 44));
+            if (vdist(aim, t.origin) > t.range) return false;
+            return g.level.collision.trace(t.origin, aim, v3(), v3(), CONTENTS_SOLID, g.shotFilter(t.team)).fraction >= 1;
+          });
+          if (seen.length) exposed.push(`stage ${g.rules.stage}: ${seen.length} ${[...groups].join('/')} spawns seen by ${t.name}`);
+        }
+      }
+    };
+    settle();
+    check();
+    // Play each stage out the way the map does it: the node (if any) fires its targets, then the objective completes.
+    for (const obj of g.objectives.filter((o) => !o.optional && !o.final).sort((a, b) => a.stage - b.stage)) {
+      const node = g.nodes.find((n) => n.src.props['objective'] === obj.name);
+      if (node) g.fireTargets(node.src.props['target'], node.src.props['action'] ?? 'trigger', g.rules.attackers);
+      g.completeObjective(obj.name, g.rules.attackers);
+      settle();
+      check();
+    }
+    expect(exposed).toEqual([]);
   });
 });
 

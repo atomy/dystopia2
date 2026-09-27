@@ -404,9 +404,17 @@ export class NodeEnt extends Ent {
     this.hacker = 0;
     this.done = false;
   }
-  override fire(action: string): void {
+  override fire(action: string, team: number): void {
     if (action === 'enable') this.enabled = true;
     else if (action === 'disable') this.enabled = false;
+    else if (action === 'capture' && team) {
+      // Hand the node over without firing its targets (the map fires those itself).
+      this.owner = team;
+      this.protection = 0;
+      this.protTeam = 0;
+      this.hackProgress = 0;
+      this.hacker = 0;
+    }
   }
   override net(): NetEnt {
     return {

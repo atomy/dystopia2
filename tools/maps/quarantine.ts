@@ -652,7 +652,11 @@ function objectives(k: MapKit): void {
     stage: 2,
     label: 'Hack the mid-spawn',
     desc: 'Jack in and hack the Mid-spawn control node in the YELLOW server (it sits on the north wall, walk up the gravity tiles).',
-    target: 'gate_core_main:open,gate_core_maint:open,jip_security_1:enable,jip_security_2:enable,ice_red_gate:pass3,jip_mid_corp:disable,docks_punk:disable',
+    // The stair turrets guard the mid spawn, so they change sides with it (for good:
+    // their nodes are handed over and shut, or attackers would respawn under fire).
+    target:
+      'gate_core_main:open,gate_core_maint:open,jip_security_1:enable,jip_security_2:enable,ice_red_gate:pass3,jip_mid_corp:disable,docks_punk:disable,' +
+      'turret_stairs_n:capture,turret_stairs_s:capture,node_turret_n:capture,node_turret_s:capture,node_turret_n:disable,node_turret_s:disable',
   });
   k.point('d2_objective', v3(1680, 0, 400), {
     targetname: 'obj_security',
