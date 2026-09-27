@@ -6,7 +6,7 @@ This is a hobby vertical slice (working title). It's not affiliated with Team Dy
 
 ![stack](https://img.shields.io/badge/stack-TypeScript%20·%20three.js%20·%20Node-27e6ff)
 
-**[▶ Watch the promo trailer](docs/media/dystopia2-promo.mp4)** (68 s, recorded from real bot matches with [tools/promo](tools/promo/README.md))
+**[▶ Watch the promo trailer](docs/media/dystopia2-promo.mp4)** (68 s, 720p; [1080p download](https://github.com/atomy/dystopia2/releases/download/promo-1/dystopia2-promo-1080p.mp4)), recorded from real bot matches with [tools/promo](tools/promo/README.md)
 
 ## Features in the slice
 
