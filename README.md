@@ -6,6 +6,8 @@ This is a hobby vertical slice (working title). It's not affiliated with Team Dy
 
 ![stack](https://img.shields.io/badge/stack-TypeScript%20·%20three.js%20·%20Node-27e6ff)
 
+**[▶ Watch the promo trailer](docs/media/dystopia2-promo.mp4)** (68 s, recorded from real bot matches with [tools/promo](tools/promo/README.md))
+
 ## Features in the slice
 
 - **Source-style movement:** air strafing, bunny hopping (re-press jump), crouch-jumps, step-up, crouch slides, ledge grabbing (Light and Medium), fall damage, and Leg Booster sprint plus charged boost jumps with goomba stomps.
